@@ -1,0 +1,20 @@
+{
+    "name": "apperph/sample-php-application",
+    "description": "Sample PHP Application",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "ApperPH\\SamplePHPApplication\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Raphael Marco",
+            "email": "ramarco@apper.ph"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.4",
+        "bramus/router": "~1.6"
+    }
+}
