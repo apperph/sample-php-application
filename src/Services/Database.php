@@ -23,7 +23,8 @@ class Database
         $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
     }
 
-    public static function try() {
+    public static function connect()
+    {
         $db = new self(
             $_ENV['DB_HOST'] ?? null,
             $_ENV['DB_PORT'] ?? null,
@@ -32,12 +33,53 @@ class Database
             $_ENV['DB_NAME'] ?? null,
         );
 
-        return $db->testConnection();
+        $db->createHealthcheckSimulationTable();
+
+        return $db;
     }
 
-    public function testConnection() {
+    public function testConnection()
+    {
         $result = $this->pdo->query('SELECT 1 + 1');
 
         return !!$result;
+    }
+
+    public function setSimulationResponse(string $response)
+    {
+        $statement = $this->pdo->prepare('
+            INSERT INTO healthcheck_simulation (app, response) VALUES (:app, :response)
+                ON DUPLICATE KEY UPDATE response = :response
+        ');
+
+        $statement->execute([
+            'app' => $_ENV['APP_NAME'],
+            'response' => $response,
+        ]);
+    }
+
+    public function getSimulationResponse()
+    {
+        $statement = $this->pdo->prepare('
+            SELECT response FROM healthcheck_simulation WHERE app = :app LIMIT 1
+        ');
+
+        $statement->execute([
+            'app' => $_ENV['APP_NAME'],
+        ]);
+
+        $result = $statement->fetch();
+
+        return $result->response;
+    }
+
+    protected function createHealthcheckSimulationTable()
+    {
+        $this->pdo->query('
+            CREATE TABLE IF NOT EXISTS healthcheck_simulation (
+                app VARCHAR(255) NOT NULL PRIMARY KEY,
+                response VARCHAR(255) NOT NULL
+            )
+        ');
     }
 }

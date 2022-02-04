@@ -10,4 +10,14 @@ $router = new Router();
 $router->get('/', Controllers\MainController::class . '@index');
 $router->get('/ul/health', Controllers\MainController::class . '@healthcheck');
 
+$router->get(
+    '/ul/health/simulate-success',
+    Controllers\MainController::class . '@simulateSuccess'
+);
+
+$router->get(
+    '/ul/health/simulate-failed',
+    Controllers\MainController::class . '@simulateFailed'
+);
+
 $router->run();

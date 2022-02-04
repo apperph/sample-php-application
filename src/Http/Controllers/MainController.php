@@ -27,9 +27,14 @@ class MainController
         header('Content-Type: application/json');
 
         $databaseError = null;
+        $databaseStatus = null;
 
         try {
-            Database::try();
+            $db = Database::connect();
+
+            $db->testConnection();
+
+            $databaseStatus = $db->getSimulationResponse();
         } catch (\PDOException | \Exception $e) {
             $databaseError = $e->getMessage();
         }
@@ -41,8 +46,11 @@ class MainController
             'dependencies' => [
                 [
                     'name' => 'database',
-                    'status' => $databaseError === null ? 'success' : 'failed',
-                    'error' => $databaseError,
+                    'status' => $databaseStatus !== null ? $databaseStatus
+                        : ($databaseError === null ? 'success'
+                            : 'failed'),
+                    'error' => $databaseStatus === 'failed' ? 'Simulated status only'
+                        : $databaseError,
                 ],
                 [
                     'name' => 'sample',
@@ -55,6 +63,35 @@ class MainController
         echo \json_encode($report);
     }
 
-    protected function tryDatabase()
-    {}
+    /**
+     * Simulates the database success
+     */
+    public function simulateSuccess()
+    {
+        $db = Database::connect();
+
+        $db->setSimulationResponse('success');
+
+        header('Content-Type: application/json');
+
+        echo \json_encode([
+            'message' => 'Set database simulated status to success.',
+        ]);
+    }
+
+    /**
+     * Simulates the database success
+     */
+    public function simulateFailed()
+    {
+        $db = Database::connect();
+
+        $db->setSimulationResponse('failed');
+
+        header('Content-Type: application/json');
+
+        echo \json_encode([
+            'message' => 'Set database simulated status to failed.',
+        ]);
+    }
 }
